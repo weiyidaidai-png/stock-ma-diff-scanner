@@ -441,16 +441,6 @@
             const longPeriodUnit = document.getElementById('longPeriodUnit').value;
             const diffThreshold = document.getElementById('diffThreshold').value;
 
-            // 基本验证
-            if (parseInt(shortPeriod) >= parseInt(longPeriod)) {
-                showError('短期周期不能大于或等于长期周期');
-                return;
-            }
-
-            // 禁用按钮
-            document.getElementById('startBtn').disabled = true;
-            document.getElementById('btnText').style.display = 'none';
-            document.getElementById('btnLoading').style.display = 'inline-block';
 
             // 显示状态区域
             document.getElementById('statusSection').style.display = 'block';

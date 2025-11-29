@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import threading
 import time
+import pandas as pd
 from stock_analyzer import StockAnalyzer
 from config import validate_config, DEFAULT_LONG_PERIOD, DEFAULT_LONG_PERIOD_UNIT, \
     DEFAULT_DIFF_THRESHOLD, DEFAULT_SHORT_PERIOD, DEFAULT_SHORT_PERIOD_UNIT, \
@@ -134,11 +135,12 @@ def configure():
         if short_period_unit not in valid_units:
             return jsonify({'success': False, 'message': '短期周期单位必须是day、month或year'})
 
-        # 转换为实际交易日进行合理性检查
+# 转换为实际交易日进行合理性检查
         long_period_days = convert_period_to_days(long_period, long_period_unit)
         short_period_days = convert_period_to_days(short_period, short_period_unit)
 
-        if long_period_days > 1000:  # 限制最大周期为1000天
+        if long_period_days > 3600:
+            return jsonify({"success": False, "message": "长期周期不能超过约15年（3600个交易日）"})
             return jsonify({'success': False, 'message': '长期周期不能超过约4年（1000个交易日）'})
 
         if short_period_days > long_period_days:
@@ -204,18 +206,19 @@ def get_results():
     # 获取跳过的股票数量
     skipped_count = getattr(analysis_result, 'skipped_count', 0)
 
-    # 转换为JSON格式
-    results = {
-        'stocks': analysis_result.to_dict('records'),
+# 确保所有数据都是原生Python类型
+    df = analysis_result.copy()
+    df = df.fillna(0.0)  # 填充NaN值
+    df = df.astype({"diff_percent": float, "latest_close": float, "long_mean": float, "short_mean": float})
         'count': total_count,
         'statistics': {
             'total': total_count,
             'up': up_count,
-            'down': down_count,
+"avg_diff": float(avg_diff) if not pd.isna(avg_diff) else 0.0,
             'avg_diff': float(avg_diff),
             'skipped': skipped_count
         }
-    }
+"stocks": df.to_dict("records"),
 
     return jsonify({'success': True, 'data': results})
 

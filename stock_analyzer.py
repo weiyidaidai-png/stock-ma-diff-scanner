@@ -43,6 +43,14 @@ class StockAnalyzer:
             # 计算差异百分比
             if long_mean == 0:
                 print(f"警告: 股票 {ts_code} 长期均值为0，跳过计算")
+# 检查是否有NaN值
+            if pd.isna(long_mean) or pd.isna(short_mean):
+                print(f"警告: 股票 {ts_code} 计算结果包含NaN值，跳过计算")
+                return None
+                return None
+# 检查差异百分比是否为NaN
+            if pd.isna(diff_percent):
+                print(f"警告: 股票 {ts_code} 差异百分比计算结果为NaN，跳过计算")
                 return None
 
             diff_percent = ((short_mean - long_mean) / long_mean) * 100
